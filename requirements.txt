@@ -1,0 +1,30 @@
+# Data
+finnhub-python
+yfinance
+pandas
+numpy
+
+# Forecasting
+lightgbm
+scikit-learn
+
+# Retrieval
+chromadb
+sentence-transformers
+
+# Knowledge Graph
+networkx
+
+# Agent
+langchain
+langchain-anthropic
+langgraph
+langsmith
+
+# UI
+streamlit
+plotly
+
+# Utilities
+python-dotenv
+requests
