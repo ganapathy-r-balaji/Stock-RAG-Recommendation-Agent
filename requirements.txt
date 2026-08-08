@@ -10,7 +10,6 @@ scikit-learn
 
 # Retrieval
 chromadb
-sentence-transformers
 
 # Knowledge Graph
 networkx

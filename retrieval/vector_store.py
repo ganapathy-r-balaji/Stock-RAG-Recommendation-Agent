@@ -4,17 +4,16 @@ can retrieve relevant context by semantic similarity.
 """
 
 import chromadb
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
 from data.data_layer import get_news
 
 _COLLECTION = "stock_news"
-_embed_fn = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
-_client   = chromadb.PersistentClient(path="chroma_db")
+# Use chromadb's built-in default embedding (ONNX MiniLM — no torch required)
+_client = chromadb.PersistentClient(path="chroma_db")
 
 
 def _collection():
-    return _client.get_or_create_collection(_COLLECTION, embedding_function=_embed_fn)
+    return _client.get_or_create_collection(_COLLECTION)
 
 
 # ── Indexing ───────────────────────────────────────────────────────────────────
