@@ -9,7 +9,7 @@ lightgbm
 scikit-learn
 
 # Retrieval
-chromadb
+chromadb==0.4.24
 
 # Knowledge Graph
 networkx

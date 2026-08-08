@@ -1,19 +1,21 @@
 """
-Vector store — embeds Finnhub news articles into Chroma so the agent
+Vector store — embeds Finnhub/yfinance news articles into Chroma so the agent
 can retrieve relevant context by semantic similarity.
+Uses chromadb's default embedding (no heavy torch/onnx dependencies).
 """
 
 import chromadb
+from chromadb.utils import embedding_functions
 
 from data.data_layer import get_news
 
 _COLLECTION = "stock_news"
-# Use chromadb's built-in default embedding (ONNX MiniLM — no torch required)
-_client = chromadb.PersistentClient(path="chroma_db")
+_embed_fn = embedding_functions.DefaultEmbeddingFunction()
+_client   = chromadb.Client()  # in-memory; fine for Streamlit Cloud
 
 
 def _collection():
-    return _client.get_or_create_collection(_COLLECTION)
+    return _client.get_or_create_collection(_COLLECTION, embedding_function=_embed_fn)
 
 
 # ── Indexing ───────────────────────────────────────────────────────────────────
