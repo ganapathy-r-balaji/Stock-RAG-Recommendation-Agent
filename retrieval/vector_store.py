@@ -11,22 +11,32 @@ Why hybrid?
 import re
 from collections import defaultdict
 
-import chromadb
-from chromadb.utils import embedding_functions
-from rank_bm25 import BM25Okapi
-
 from data.data_layer import get_news
 
 _COLLECTION = "stock_news"
-_embed_fn = embedding_functions.DefaultEmbeddingFunction()
-_client   = chromadb.Client()  # in-memory; fine for Streamlit Cloud
 
 # In-memory BM25 index per ticker: {ticker: {"corpus": [...], "metas": [...], "bm25": BM25Okapi}}
 _bm25_index: dict = {}
 
+# Lazy-loaded singletons — not initialised at import time to save startup RAM
+_chroma_client = None
+_embed_fn      = None
+
+
+def _get_chroma_client():
+    global _chroma_client, _embed_fn
+    if _chroma_client is None:
+        import chromadb
+        from chromadb.utils import embedding_functions
+        _embed_fn      = embedding_functions.DefaultEmbeddingFunction()
+        _chroma_client = chromadb.Client()
+    return _chroma_client
+
 
 def _collection():
-    return _client.get_or_create_collection(_COLLECTION, embedding_function=_embed_fn)
+    from chromadb.utils import embedding_functions  # already cached after first call
+    client = _get_chroma_client()
+    return client.get_or_create_collection(_COLLECTION, embedding_function=_embed_fn)
 
 
 def _tokenise(text: str) -> list[str]:
@@ -55,6 +65,7 @@ def index_news(ticker: str, days: int = 7) -> int:
     col.upsert(documents=docs, ids=ids, metadatas=metas)
 
     # Keyword index
+    from rank_bm25 import BM25Okapi
     _bm25_index[ticker] = {
         "corpus": docs,
         "metas":  metas,
