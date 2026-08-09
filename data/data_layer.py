@@ -29,12 +29,22 @@ def get_price_history(ticker: str, days: int = 90) -> pd.DataFrame:
     end   = datetime.now(timezone.utc)
     start = end - timedelta(days=days)
 
+    # yfinance sometimes blocks datacenter IPs — use a browser-like session
+    import requests
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/120.0.0.0 Safari/537.36"
+    })
+
     raw = yf.download(
         ticker,
         start=start.strftime("%Y-%m-%d"),
         end=end.strftime("%Y-%m-%d"),
         progress=False,
         auto_adjust=True,
+        session=session,
     )
     if raw.empty:
         raise ValueError(f"No price data returned for {ticker!r}")
