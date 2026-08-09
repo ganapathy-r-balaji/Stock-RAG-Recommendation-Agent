@@ -9,8 +9,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMRegressor
-from sklearn.metrics import mean_absolute_error
 
 from data.data_layer import get_price_history
 
@@ -71,6 +69,8 @@ def _walk_forward_mae(df: pd.DataFrame, n_splits: int = 5) -> float:
     """Return average MAE across walk-forward folds."""
     fold_size = len(df) // (n_splits + 1)
     maes = []
+    from lightgbm import LGBMRegressor
+    from sklearn.metrics import mean_absolute_error
     for i in range(1, n_splits + 1):
         train = df.iloc[:fold_size * i]
         test  = df.iloc[fold_size * i: fold_size * (i + 1)]
@@ -103,6 +103,7 @@ def forecast_price(ticker: str) -> ForecastResult:
     confidence = float(np.clip(1 - mae / price_scale, 0.0, 1.0))
 
     # Final model trained on all data
+    from lightgbm import LGBMRegressor
     model = LGBMRegressor(n_estimators=200, verbose=-1)
     model.fit(df[_FEATURE_COLS], df["target"])
 

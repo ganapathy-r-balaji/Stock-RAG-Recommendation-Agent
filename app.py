@@ -7,7 +7,6 @@ import streamlit as st
 import plotly.graph_objects as go
 
 from data.data_layer import get_price_history
-from agent.agent import run_agent
 
 # ── Page config ────────────────────────────────────────────────────────────────
 
@@ -75,6 +74,7 @@ if prompt := st.chat_input(f"Ask about {ticker}…"):
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking…"):
+            from agent.agent import run_agent  # lazy import — loads LangChain only on first query
             response, eval_scores = run_agent(
                 ticker,
                 prompt,
