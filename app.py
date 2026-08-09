@@ -9,6 +9,11 @@ import plotly.graph_objects as go
 from data.data_layer import get_price_history
 from agent.agent import run_agent
 
+
+@st.cache_data(ttl=3600)
+def _cached_price_history(ticker: str):
+    return get_price_history(ticker, days=90)
+
 # ── Page config ────────────────────────────────────────────────────────────────
 
 st.set_page_config(
@@ -41,7 +46,7 @@ if st.session_state.active_ticker != ticker:
 if ticker:
     with st.spinner(f"Loading {ticker} price history…"):
         try:
-            df = get_price_history(ticker, days=90)
+            df = _cached_price_history(ticker)
             fig = go.Figure()
             fig.add_trace(go.Scatter(
                 x=df["date"], y=df["close"],

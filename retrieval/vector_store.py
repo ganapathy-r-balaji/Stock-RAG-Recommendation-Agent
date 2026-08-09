@@ -12,21 +12,29 @@ import re
 from collections import defaultdict
 
 import chromadb
+import streamlit as st
 from chromadb.utils import embedding_functions
 from rank_bm25 import BM25Okapi
 
 from data.data_layer import get_news
 
 _COLLECTION = "stock_news"
-_embed_fn = embedding_functions.DefaultEmbeddingFunction()
-_client   = chromadb.Client()  # in-memory
 
 # In-memory BM25 index per ticker: {ticker: {"corpus": [...], "metas": [...], "bm25": BM25Okapi}}
 _bm25_index: dict = {}
 
 
+@st.cache_resource
+def _get_chroma():
+    """Initialise ChromaDB client + embedding function once per process."""
+    embed_fn = embedding_functions.DefaultEmbeddingFunction()
+    client   = chromadb.Client()
+    return client, embed_fn
+
+
 def _collection():
-    return _client.get_or_create_collection(_COLLECTION, embedding_function=_embed_fn)
+    client, embed_fn = _get_chroma()
+    return client.get_or_create_collection(_COLLECTION, embedding_function=embed_fn)
 
 
 def _tokenise(text: str) -> list[str]:

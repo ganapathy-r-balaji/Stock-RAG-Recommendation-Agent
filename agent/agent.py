@@ -33,24 +33,24 @@ say so clearly. Be concise and factual.
 
 ⚠️ This is not financial advice. For informational purposes only."""
 
+import streamlit as st
+
 # Lazy-initialised agent (avoids import-time API calls)
 _agent = None
 
 
+@st.cache_resource
 def _get_agent():
-    global _agent
-    if _agent is None:
-        llm = ChatAnthropic(
-            model="claude-sonnet-4-6",
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
-            temperature=0.2,
-        )
-        _agent = create_react_agent(
-            llm,
-            tools=ALL_TOOLS,
-            prompt=_SYSTEM_PROMPT,
-        )
-    return _agent
+    llm = ChatAnthropic(
+        model="claude-sonnet-4-6",
+        api_key=os.getenv("ANTHROPIC_API_KEY"),
+        temperature=0.2,
+    )
+    return create_react_agent(
+        llm,
+        tools=ALL_TOOLS,
+        prompt=_SYSTEM_PROMPT,
+    )
 
 
 def run_agent(
