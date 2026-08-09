@@ -2,6 +2,63 @@
 
 ```mermaid
 flowchart TD
+    U[User: ticker + question] --> UI[Streamlit UI\nprice chart · multi-turn chat]
+    UI --> AG[LangGraph ReAct Agent\nClaude Sonnet 4.6]
+
+    subgraph Tools
+        T1[tool_forecast_price]
+        T2[tool_retrieve_news]
+        T3[tool_price_history]
+    end
+
+    AG -->|tool call| T1
+    AG -->|tool call| T2
+    AG -->|tool call| T3
+
+    subgraph Data
+        YF[yfinance] --> PH[Price History]
+        YF --> NW[News fallback]
+        FH[Finnhub API\noptional] --> NW
+    end
+
+    subgraph Forecast
+        PH --> FE[Feature Engineering\nlags · MA · RSI]
+        FE --> LGB[LightGBM Regressor\nwalk-forward validated]
+        LGB --> FC[3-day Forecast + confidence]
+    end
+
+    subgraph RAG
+        NW --> VEC[Chroma Vector Store\nin-memory]
+        VEC --> RET[Semantic News Retrieval]
+    end
+
+    T1 --> LGB
+    T2 --> RET
+    T3 --> PH
+
+    FC --> AG
+    RET --> AG
+    PH --> AG
+
+    AG --> LLM[Claude Sonnet 4.6\nfinal answer]
+    LLM --> UI
+    AG -.->|trace| LS[LangSmith]
+```
+
+## Components
+
+| Layer | What it does | Key file |
+|---|---|---|
+| **Data** | Price history + news via yfinance; Finnhub optional | `data/data_layer.py` |
+| **Forecast** | LightGBM with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
+| **Vector store** | Chroma in-memory; news retrieved by semantic similarity | `retrieval/vector_store.py` |
+| **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
+| **Agent** | LangGraph ReAct loop with multi-turn memory; LangSmith tracing | `agent/agent.py` |
+| **UI** | Streamlit: ticker input, price chart, persistent multi-turn chat | `app.py` |
+
+
+```mermaid
+flowchart TD
     U[User: ticker + question] --> AG[LangGraph Agent]
 
     subgraph Data Layer
