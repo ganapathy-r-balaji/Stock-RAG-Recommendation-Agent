@@ -6,6 +6,8 @@ conversational Streamlit interface.
 
 > ⚠️ **NOT FINANCIAL ADVICE** — for educational and demo purposes only.
 
+🚀 **Live demo:** [stock-rag-recommendation-agent.onrender.com](https://stock-rag-recommendation-agent.onrender.com)
+
 ---
 
 ## Project structure
