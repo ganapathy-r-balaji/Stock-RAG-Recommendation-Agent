@@ -61,7 +61,8 @@ Rules:
 - Be concise — one sentence per bullet
 - End with a directional outlook for the next 6 months
 - Do NOT give financial advice, just analytical observations
-- Do NOT use markdown headers"""
+- Do NOT use markdown headers
+- Write prices as plain numbers with USD suffix (e.g. 313.33 USD) — do NOT use $ signs"""
 
     client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     response = client.messages.create(
@@ -123,7 +124,9 @@ if ticker:
     with st.spinner(f"Analysing {ticker}…"):
         try:
             snapshot = _cached_snapshot(ticker)
-            st.info(snapshot)
+            # Escape $ signs to prevent Streamlit rendering them as LaTeX
+            snapshot_escaped = snapshot.replace("$", "\\$")
+            st.info(snapshot_escaped)
         except Exception:
             pass  # silently skip if snapshot fails
 
