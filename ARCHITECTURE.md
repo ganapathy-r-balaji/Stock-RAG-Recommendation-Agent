@@ -29,11 +29,15 @@ flowchart TD
 
     subgraph RAG
         NW --> VEC[Chroma Vector Store\nin-memory]
-        VEC --> RET[Semantic News Retrieval]
+        NW --> BM25[BM25 Keyword Index\nin-memory]
+        VEC --> SEM[Semantic Retrieval]
+        BM25 --> KW[Keyword Retrieval]
+        SEM --> RRF[RRF Fusion\nReciprocal Rank Fusion]
+        KW --> RRF
     end
 
     T1 --> LGB
-    T2 --> RET
+    T2 --> RRF
     T3 --> PH
 
     FC --> AG
@@ -51,7 +55,7 @@ flowchart TD
 |---|---|---|
 | **Data** | Price history + news via yfinance; Finnhub optional | `data/data_layer.py` |
 | **Forecast** | LightGBM with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
-| **Vector store** | Chroma in-memory; news retrieved by semantic similarity | `retrieval/vector_store.py` |
+| **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
 | **Agent** | LangGraph ReAct loop with multi-turn memory; LangSmith tracing | `agent/agent.py` |
 | **UI** | Streamlit: ticker input, price chart, persistent multi-turn chat | `app.py` |
