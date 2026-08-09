@@ -11,6 +11,7 @@ scikit-learn
 # Retrieval
 chromadb==0.4.24
 rank-bm25
+openai
 
 # Knowledge Graph
 networkx

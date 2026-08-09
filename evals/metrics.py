@@ -31,13 +31,13 @@ import json
 import os
 from dataclasses import dataclass
 
-from anthropic import Anthropic
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 
-_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-_MODEL  = "claude-haiku-4-5-20251001"   # fast + cheap for evals
+_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+_MODEL  = "gpt-4o-mini"   # fast, cheap, and strict JSON mode for reliable eval parsing
 
 
 # ── Data types ─────────────────────────────────────────────────────────────────
@@ -73,19 +73,17 @@ class EvalScores:
 # ── LLM judge ─────────────────────────────────────────────────────────────────
 
 def _judge(prompt: str) -> dict:
-    """Call Claude and parse a JSON response with {score: float, rationale: str}."""
-    response = _client.messages.create(
+    """Call GPT-4o-mini with JSON mode — guaranteed valid JSON, no parsing hacks."""
+    response = _client.chat.completions.create(
         model=_MODEL,
         max_tokens=256,
-        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are an evaluation judge. Always respond with valid JSON."},
+            {"role": "user",   "content": prompt},
+        ],
     )
-    text = response.content[0].text.strip()
-    # Extract JSON from response
-    start = text.find("{")
-    end   = text.rfind("}") + 1
-    if start == -1:
-        return {"score": 0.5, "rationale": text}
-    return json.loads(text[start:end])
+    return json.loads(response.choices[0].message.content)
 
 
 # ── Individual metric prompts ──────────────────────────────────────────────────
