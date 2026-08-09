@@ -46,6 +46,9 @@ flowchart TD
 
     AG --> LLM[Claude Sonnet 4.6\nfinal answer]
     LLM --> UI
+    PH --> SNAP[Claude Opus 4.5\nstock snapshot · 3-4 bullets]
+    FC --> SNAP
+    SNAP --> UI
     AG -.->|trace| LS[LangSmith]
 ```
 
@@ -58,7 +61,8 @@ flowchart TD
 | **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
 | **Agent** | LangGraph ReAct loop with multi-turn memory; LangSmith tracing | `agent/agent.py` |
-| **UI** | Streamlit: ticker input, price chart, persistent multi-turn chat | `app.py` |
+| **Snapshot** | Claude Opus 4.5 generates 3-4 bullet price + forecast summary shown before chat | `app.py` |
+| **UI** | Streamlit: ticker input, price chart, snapshot, persistent multi-turn chat | `app.py` |
 
 
 ```mermaid

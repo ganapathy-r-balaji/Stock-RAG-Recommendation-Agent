@@ -70,8 +70,9 @@ flowchart TD
 | **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
 | **Agent** | LangGraph ReAct loop with multi-turn memory; LangSmith tracing | `agent/agent.py` |
+| **Snapshot** | Claude Opus 4.5 generates 3-4 bullet price + forecast summary shown before chat | `app.py` |
 | **Evals** | 4 LLM-as-judge metrics via GPT-4o-mini (context relevance, coverage, faithfulness, answer relevance) | `evals/metrics.py` |
-| **UI** | Streamlit: ticker input, price chart, persistent multi-turn chat, eval scores expander | `app.py` |
+| **UI** | Streamlit: ticker input, price chart, snapshot, persistent multi-turn chat, eval scores expander | `app.py` |
 
 ---
 
@@ -120,6 +121,6 @@ streamlit run app.py
 2. **Forecaster** — engineers lag/MA/RSI features, trains a LightGBM model with walk-forward validation, and returns a 3-day-ahead price prediction with a confidence score.
 3. **Hybrid RAG** — news is indexed into both Chroma (semantic) and BM25 (keyword); results are merged via Reciprocal Rank Fusion (RRF) for best-of-both retrieval.
 4. **Agent** — LangGraph ReAct loop with Claude Sonnet 4.6 calls tools, grounds every answer in retrieved news and forecast data, supports multi-turn chat.
-5. **Evals** — after each RAG response, GPT-4o-mini scores 4 metrics (context relevance, context coverage, faithfulness, answer relevance) displayed inline in the UI.
-6. **LangSmith** — every run and tool call is traced automatically when `LANGSMITH_API_KEY` is set.
-   when `LANGSMITH_API_KEY` is set.
+5. **Snapshot** — Claude Opus 4.5 automatically generates a 3-4 bullet summary of recent price performance, the 3-day forecast signal, and a 6-month directional outlook — shown before the chat.
+6. **Evals** — after each RAG response, GPT-4o-mini scores 4 metrics (context relevance, context coverage, faithfulness, answer relevance) displayed inline in the UI.
+7. **LangSmith** — every run and tool call is traced automatically when `LANGSMITH_API_KEY` is set.
