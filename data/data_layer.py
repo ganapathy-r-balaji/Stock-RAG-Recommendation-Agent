@@ -26,30 +26,29 @@ except ImportError:
 
 def get_price_history(ticker: str, days: int = 90) -> pd.DataFrame:
     """Return OHLCV DataFrame for *ticker* covering the last *days* calendar days."""
-    end   = datetime.now(timezone.utc)
-    start = end - timedelta(days=days)
+    # Use Ticker.history() — hits a different endpoint than yf.download(),
+    # more reliable from cloud/datacenter IPs (Render, AWS, etc.)
+    period_map = {30: "1mo", 60: "3mo", 90: "3mo", 180: "6mo", 365: "1y"}
+    period = period_map.get(days) or ("1y" if days >= 365 else "3mo")
 
-    # yfinance sometimes blocks datacenter IPs — use a browser-like session
-    import requests
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                      "AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/120.0.0.0 Safari/537.36"
-    })
+    t = yf.Ticker(ticker)
+    raw = t.history(period=period, auto_adjust=True)
 
-    raw = yf.download(
-        ticker,
-        start=start.strftime("%Y-%m-%d"),
-        end=end.strftime("%Y-%m-%d"),
-        progress=False,
-        auto_adjust=True,
-        session=session,
-    )
+    # Fallback: try yf.download if history() returns empty
+    if raw.empty:
+        end   = datetime.now(timezone.utc)
+        start = end - timedelta(days=days)
+        raw = yf.download(
+            ticker,
+            start=start.strftime("%Y-%m-%d"),
+            end=end.strftime("%Y-%m-%d"),
+            progress=False,
+            auto_adjust=True,
+        )
+
     if raw.empty:
         raise ValueError(f"No price data returned for {ticker!r}")
 
-    # yfinance may return MultiIndex columns when downloading a single ticker
     if isinstance(raw.columns, pd.MultiIndex):
         raw.columns = raw.columns.get_level_values(0)
 
