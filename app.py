@@ -8,11 +8,68 @@ import plotly.graph_objects as go
 
 from data.data_layer import get_price_history
 from agent.agent import run_agent
+from forecast.forecaster import forecast_price
 
 
 @st.cache_data(ttl=3600)
 def _cached_price_history(ticker: str):
     return get_price_history(ticker, days=90)
+
+
+@st.cache_data(ttl=3600)
+def _cached_snapshot(ticker: str) -> str:
+    """Generate a 3-4 bullet stock snapshot using Claude — cached 1 hour per ticker."""
+    import os
+    from anthropic import Anthropic
+
+    # Gather data
+    try:
+        from forecast.forecaster import forecast_price
+        fc = forecast_price(ticker)
+        forecast_text = (
+            f"3-day forecast: {fc.predicted_price:.2f} (current: {fc.current_price:.2f}, "
+            f"{fc.pct_change:+.1f}%, confidence: {fc.confidence:.0%})"
+        )
+    except Exception as e:
+        forecast_text = f"Forecast unavailable: {e}"
+
+    try:
+        df = get_price_history(ticker, days=180)
+        start_6m = round(float(df["close"].iloc[0]), 2)
+        end_6m   = round(float(df["close"].iloc[-1]), 2)
+        pct_6m   = round((end_6m - start_6m) / start_6m * 100, 1)
+        high_6m  = round(float(df["high"].max()), 2)
+        low_6m   = round(float(df["low"].min()), 2)
+        price_text = (
+            f"6-month price history: start ${start_6m}, current ${end_6m}, "
+            f"change {pct_6m:+.1f}%, 6m high ${high_6m}, 6m low ${low_6m}"
+        )
+    except Exception as e:
+        price_text = f"Price history unavailable: {e}"
+
+    prompt = f"""You are a concise stock analyst. Given the following data for {ticker}, write exactly 3-4 bullet points summarising:
+1. Recent price performance
+2. Short-term forecast signal
+3. What this suggests for the next 6 months (up/down/sideways and why)
+
+Data:
+- {price_text}
+- {forecast_text}
+
+Rules:
+- Use bullet points (•)
+- Be concise — one sentence per bullet
+- End with a directional outlook for the next 6 months
+- Do NOT give financial advice, just analytical observations
+- Do NOT use markdown headers"""
+
+    client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=300,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return response.content[0].text.strip()
 
 # ── Page config ────────────────────────────────────────────────────────────────
 
@@ -61,6 +118,14 @@ if ticker:
             st.plotly_chart(fig, use_container_width=True)
         except Exception as e:
             st.error(f"Could not load price data: {e}")
+
+    # ── Stock snapshot ─────────────────────────────────────────────────────────
+    with st.spinner(f"Analysing {ticker}…"):
+        try:
+            snapshot = _cached_snapshot(ticker)
+            st.info(snapshot)
+        except Exception:
+            pass  # silently skip if snapshot fails
 
 # ── Chat ───────────────────────────────────────────────────────────────────────
 
