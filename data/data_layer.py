@@ -1,7 +1,7 @@
 """
-Data layer — price history and news via yfinance (free, no key needed);
-Finnhub used optionally for news if available and key is set.
-Swap the provider by changing only this file.
+Data layer — price history and news.
+Price: Alpha Vantage (primary, works from cloud IPs) → yfinance (local fallback).
+News:  Finnhub (optional) → yfinance.
 """
 
 import os
@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+_AV_KEY = os.getenv("ALPHA_VANTAGE_KEY", "")
+
 # Finnhub is optional — only used if installed and API key is present
 try:
     import finnhub as _finnhub_mod
@@ -22,46 +24,73 @@ except ImportError:
     _client = None
 
 
-# ── Price history (yfinance — free, no rate limit issues) ─────────────────────
+# ── Price history ──────────────────────────────────────────────────────────────
 
-def get_price_history(ticker: str, days: int = 90) -> pd.DataFrame:
-    """Return OHLCV DataFrame for *ticker* covering the last *days* calendar days."""
-    # Use Ticker.history() — hits a different endpoint than yf.download(),
-    # more reliable from cloud/datacenter IPs (Render, AWS, etc.)
+def _av_price_history(ticker: str, days: int) -> pd.DataFrame:
+    """Fetch OHLCV from Alpha Vantage (works from any cloud IP)."""
+    import requests
+    outputsize = "compact" if days <= 100 else "full"
+    url = (
+        f"https://www.alphavantage.co/query"
+        f"?function=TIME_SERIES_DAILY_ADJUSTED"
+        f"&symbol={ticker}&outputsize={outputsize}&apikey={_AV_KEY}"
+    )
+    resp = requests.get(url, timeout=15)
+    resp.raise_for_status()
+    data = resp.json()
+
+    ts = data.get("Time Series (Daily)", {})
+    if not ts:
+        raise ValueError(data.get("Note") or data.get("Information") or "No data from Alpha Vantage")
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = []
+    for date_str, vals in ts.items():
+        dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        if dt < cutoff:
+            continue
+        rows.append({
+            "date":   dt,
+            "open":   float(vals["1. open"]),
+            "high":   float(vals["2. high"]),
+            "low":    float(vals["3. low"]),
+            "close":  float(vals["5. adjusted close"]),
+            "volume": float(vals["6. volume"]),
+        })
+
+    if not rows:
+        raise ValueError(f"No Alpha Vantage data for {ticker!r}")
+
+    df = pd.DataFrame(rows).sort_values("date").reset_index(drop=True)
+    return df
+
+
+def _yf_price_history(ticker: str, days: int) -> pd.DataFrame:
+    """Fetch OHLCV from yfinance (fallback — may be blocked on cloud IPs)."""
     period_map = {30: "1mo", 60: "3mo", 90: "3mo", 180: "6mo", 365: "1y"}
     period = period_map.get(days) or ("1y" if days >= 365 else "3mo")
-
-    t = yf.Ticker(ticker)
-    raw = t.history(period=period, auto_adjust=True)
-
-    # Fallback: try yf.download if history() returns empty
-    if raw.empty:
-        end   = datetime.now(timezone.utc)
-        start = end - timedelta(days=days)
-        raw = yf.download(
-            ticker,
-            start=start.strftime("%Y-%m-%d"),
-            end=end.strftime("%Y-%m-%d"),
-            progress=False,
-            auto_adjust=True,
-        )
-
+    raw = yf.Ticker(ticker).history(period=period, auto_adjust=True)
     if raw.empty:
         raise ValueError(f"No price data returned for {ticker!r}")
-
     if isinstance(raw.columns, pd.MultiIndex):
         raw.columns = raw.columns.get_level_values(0)
-
     df = raw.reset_index().rename(columns={
-        "Date":   "date",
-        "Open":   "open",
-        "High":   "high",
-        "Low":    "low",
-        "Close":  "close",
-        "Volume": "volume",
+        "Date": "date", "Open": "open", "High": "high",
+        "Low": "low", "Close": "close", "Volume": "volume",
     })
-    df = df[["date", "open", "high", "low", "close", "volume"]].sort_values("date").reset_index(drop=True)
-    return df
+    return df[["date", "open", "high", "low", "close", "volume"]].sort_values("date").reset_index(drop=True)
+
+
+def get_price_history(ticker: str, days: int = 90) -> pd.DataFrame:
+    """Return OHLCV DataFrame for *ticker* covering the last *days* calendar days.
+    Uses Alpha Vantage when key is set (cloud-safe), falls back to yfinance.
+    """
+    if _AV_KEY:
+        try:
+            return _av_price_history(ticker, days)
+        except Exception:
+            pass  # fall through to yfinance
+    return _yf_price_history(ticker, days)
 
 
 # ── News ───────────────────────────────────────────────────────────────────────
