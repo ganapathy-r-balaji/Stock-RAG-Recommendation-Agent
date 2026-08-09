@@ -75,12 +75,25 @@ if prompt := st.chat_input(f"Ask about {ticker}…"):
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking…"):
-            response = run_agent(
+            response, eval_scores = run_agent(
                 ticker,
                 prompt,
                 history=st.session_state.history[:-1],
             )
         st.markdown(response)
+
+        if eval_scores:
+            with st.expander(f"📊 Eval scores — overall {eval_scores['overall']:.2f}", expanded=False):
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Context relevance",  f"{eval_scores['context_relevance']:.2f}")
+                col2.metric("Context coverage",   f"{eval_scores['context_coverage']:.2f}")
+                col3.metric("Faithfulness",        f"{eval_scores['faithfulness']:.2f}")
+                col4.metric("Answer relevance",    f"{eval_scores['answer_relevance']:.2f}")
+                st.caption("Scores are 0–1, judged by Claude Haiku (LLM-as-judge). Higher = better.")
+                if rationales := eval_scores.get("rationales"):
+                    for metric, reason in rationales.items():
+                        if reason:
+                            st.markdown(f"**{metric.replace('_', ' ').title()}**: {reason}")
 
     st.session_state.history.append({"role": "assistant", "content": response})
 

@@ -5,11 +5,12 @@ Supports multi-turn conversation via persistent message history.
 LangSmith tracing enabled automatically when LANGSMITH_API_KEY is set.
 """
 
+import json
 import os
 
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.prebuilt import create_react_agent
 
 from agent.tools import ALL_TOOLS
@@ -52,14 +53,20 @@ def _get_agent():
     return _agent
 
 
-def run_agent(ticker: str, question: str, history: list[dict] | None = None) -> str:
+def run_agent(
+    ticker: str,
+    question: str,
+    history: list[dict] | None = None,
+    run_evals: bool = True,
+) -> tuple[str, dict | None]:
     """
     Run the agent for *ticker* and *question*.
 
     *history* is a list of prior {"role": "user"|"assistant", "content": str} dicts
     for multi-turn continuity.
 
-    Returns the assistant's plain-text response.
+    Returns (answer: str, eval_scores: dict | None).
+    eval_scores is None when run_evals=False or evaluation fails.
     """
     messages: list = []
     for turn in (history or []):
@@ -71,7 +78,33 @@ def run_agent(ticker: str, question: str, history: list[dict] | None = None) -> 
     messages.append(HumanMessage(content=f"Ticker: {ticker}\n\nQuestion: {question}"))
 
     try:
-        result = _get_agent().invoke({"messages": messages})
-        return result["messages"][-1].content
+        result   = _get_agent().invoke({"messages": messages})
+        answer   = result["messages"][-1].content
+
+        eval_scores = None
+        if run_evals:
+            # Extract news snippets returned by tool_retrieve_news (if called)
+            retrieved_docs: list[dict] = []
+            for msg in result["messages"]:
+                if isinstance(msg, ToolMessage):
+                    try:
+                        data = json.loads(msg.content)
+                        if isinstance(data, list):          # news snippets are a list
+                            retrieved_docs.extend(data)
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+
+            # Only run evals when there are retrieved docs (RAG path was triggered)
+            if retrieved_docs:
+                from evals.metrics import evaluate
+                scores = evaluate(
+                    ticker=ticker,
+                    query=question,
+                    retrieved_docs=retrieved_docs,
+                    answer=answer,
+                )
+                eval_scores = scores.to_dict()
+
+        return answer, eval_scores
     except Exception as e:
-        return f"❌ Agent error: {e}"
+        return f"❌ Agent error: {e}", None
