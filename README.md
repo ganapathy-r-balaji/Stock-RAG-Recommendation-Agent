@@ -5,7 +5,7 @@ multi-turn conversational interface to answer stock research questions.
 
 > ⚠️ **NOT FINANCIAL ADVICE** — for educational and demo purposes only.
 
-🚀 **Live demo:** [stock-rag-recommendation-agent.onrender.com](https://stock-rag-recommendation-agent.onrender.com)
+🚀 **Live demo:** [nvl2l4byfavtx8nnrxnsjj.streamlit.app](https://nvl2l4byfavtx8nnrxnsjj.streamlit.app)
 
 ---
 
