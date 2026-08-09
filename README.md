@@ -65,7 +65,7 @@ flowchart TD
 
 | Layer | What it does | Key file |
 |---|---|---|
-| **Data** | Price history + news via yfinance; Finnhub optional | `data/data_layer.py` |
+| **Data** | Price history via Alpha Vantage (primary, cloud-safe) → yfinance fallback; news via Finnhub optional → yfinance | `data/data_layer.py` |
 | **Forecast** | LightGBM with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
 | **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
@@ -116,7 +116,7 @@ streamlit run app.py
 
 ## How it works
 
-1. **Data layer** — fetches OHLCV price history and news from yfinance (Finnhub optional).
+1. **Data layer** — fetches OHLCV price history from Alpha Vantage (cloud-safe, no IP blocking) with yfinance as fallback; news from Finnhub (optional) or yfinance.
 2. **Forecaster** — engineers lag/MA/RSI features, trains a LightGBM model with walk-forward validation, and returns a 3-day-ahead price prediction with a confidence score.
 3. **Hybrid RAG** — news is indexed into both Chroma (semantic) and BM25 (keyword); results are merged via Reciprocal Rank Fusion (RRF) for best-of-both retrieval.
 4. **Agent** — LangGraph ReAct loop with Claude Sonnet 4.6 calls tools, grounds every answer in retrieved news and forecast data, supports multi-turn chat.

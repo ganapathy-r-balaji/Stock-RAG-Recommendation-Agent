@@ -53,7 +53,7 @@ flowchart TD
 
 | Layer | What it does | Key file |
 |---|---|---|
-| **Data** | Price history + news via yfinance; Finnhub optional | `data/data_layer.py` |
+| **Data** | Price history via Alpha Vantage (primary, cloud-safe) → yfinance fallback; news via Finnhub optional → yfinance | `data/data_layer.py` |
 | **Forecast** | LightGBM with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
 | **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
