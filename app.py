@@ -65,7 +65,7 @@ Rules:
 
     client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-opus-4-5",
         max_tokens=300,
         messages=[{"role": "user", "content": prompt}],
     )
