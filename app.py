@@ -7,6 +7,7 @@ import streamlit as st
 import plotly.graph_objects as go
 
 from data.data_layer import get_price_history
+from agent.agent import run_agent
 
 # ── Page config ────────────────────────────────────────────────────────────────
 
@@ -74,7 +75,6 @@ if prompt := st.chat_input(f"Ask about {ticker}…"):
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking…"):
-            from agent.agent import run_agent  # lazy import — loads LangChain only on first query
             response, eval_scores = run_agent(
                 ticker,
                 prompt,
@@ -89,7 +89,7 @@ if prompt := st.chat_input(f"Ask about {ticker}…"):
                 col2.metric("Context coverage",   f"{eval_scores['context_coverage']:.2f}")
                 col3.metric("Faithfulness",        f"{eval_scores['faithfulness']:.2f}")
                 col4.metric("Answer relevance",    f"{eval_scores['answer_relevance']:.2f}")
-                st.caption("Scores are 0–1, judged by Claude Haiku (LLM-as-judge). Higher = better.")
+                st.caption("Scores are 0–1, judged by GPT-4o-mini (LLM-as-judge). Higher = better.")
                 if rationales := eval_scores.get("rationales"):
                     for metric, reason in rationales.items():
                         if reason:
