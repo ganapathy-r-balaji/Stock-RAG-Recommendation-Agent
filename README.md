@@ -7,61 +7,11 @@ multi-turn conversational interface to answer stock research questions.
 
 **Live demo:** [nvl2l4byfavtx8nnrxnsjj.streamlit.app](https://nvl2l4byfavtx8nnrxnsjj.streamlit.app)
 
-[![Architecture Diagram](docs/architecture.png)](https://viewer.diagrams.net/?url=https://raw.githubusercontent.com/ganapathy-r-balaji/Stock-RAG-Recommendation-Agent/main/AI%20Workflow%20architecture%20diagram.drawio)
-
 ---
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    U[User: ticker + question] --> UI[Streamlit UI\nprice chart · multi-turn chat]
-    UI --> AG[LangGraph ReAct Agent\nClaude Sonnet 4.6]
-
-    subgraph Tools
-        T1[tool_forecast_price]
-        T2[tool_retrieve_news]
-        T3[tool_price_history]
-    end
-
-    AG -->|tool call| T1
-    AG -->|tool call| T2
-    AG -->|tool call| T3
-
-    subgraph Data
-        YF[yfinance] --> PH[Price History]
-        YF --> NW[News fallback]
-        FH[Finnhub API\noptional] --> NW
-    end
-
-    subgraph Forecast
-        PH --> FE[Feature Engineering\nlags · MA · RSI]
-        FE --> LGB[LightGBM Regressor\nwalk-forward validated]
-        LGB --> FC[3-day Forecast + confidence]
-    end
-
-    subgraph RAG
-        NW --> VEC[FAISS Index\nOpenAI embeddings]
-        NW --> BM25[BM25 Keyword Index\nin-memory]
-        VEC --> SEM[Semantic Retrieval]
-        BM25 --> KW[Keyword Retrieval]
-        SEM --> RRF[RRF Fusion\nReciprocal Rank Fusion]
-        KW --> RRF
-    end
-
-    T1 --> LGB
-    T2 --> RRF
-    T3 --> PH
-
-    FC --> AG
-    RRF --> AG
-    PH --> AG
-
-    AG --> LLM[Claude Sonnet 4.6\nfinal answer]
-    LLM --> UI
-    AG -.->|trace| LS[LangSmith]
-    LLM -.->|eval scores| EV[GPT-4o-mini\nLLM-as-judge]
-```
+![Architecture Diagram](docs/architecture.png)
 
 ## Components
 
