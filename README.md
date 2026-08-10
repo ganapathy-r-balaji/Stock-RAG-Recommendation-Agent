@@ -67,7 +67,7 @@ flowchart TD
 |---|---|---|
 | **Data** | Price history via Alpha Vantage (primary, cloud-safe) → yfinance fallback; news via Finnhub optional → yfinance | `data/data_layer.py` |
 | **Forecast** | LightGBM with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
-| **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
+| **Vector store** | FAISS IndexFlatIP (OpenAI embeddings, cosine similarity) + BM25 keyword, fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
 | **Agent** | LangGraph ReAct loop with multi-turn memory; LangSmith tracing | `agent/agent.py` |
 | **Snapshot** | Claude Opus 4.5 generates 3-4 bullet price + forecast summary shown before chat | `app.py` |
@@ -119,7 +119,7 @@ streamlit run app.py
 
 1. **Data layer** — fetches OHLCV price history from Alpha Vantage (cloud-safe, no IP blocking) with yfinance as fallback; news from Finnhub (optional) or yfinance.
 2. **Forecaster** — engineers lag/MA/RSI features, trains a LightGBM model with walk-forward validation, and returns a 3-day-ahead price prediction with a confidence score.
-3. **Hybrid RAG** — news is indexed into both Chroma (semantic) and BM25 (keyword); results are merged via Reciprocal Rank Fusion (RRF) for best-of-both retrieval.
+3. **Hybrid RAG** — news is embedded via OpenAI and indexed into FAISS (semantic) and BM25 (keyword); results are merged via Reciprocal Rank Fusion (RRF) for best-of-both retrieval.
 4. **Agent** — LangGraph ReAct loop with Claude Sonnet 4.6 calls tools, grounds every answer in retrieved news and forecast data, supports multi-turn chat.
 5. **Snapshot** — Claude Opus 4.5 automatically generates a 3-4 bullet summary of recent price performance, the 3-day forecast signal, and a 6-month directional outlook — shown before the chat.
 6. **Evals** — after each RAG response, GPT-4o-mini scores 4 metrics (context relevance, context coverage, faithfulness, answer relevance) displayed inline in the UI.

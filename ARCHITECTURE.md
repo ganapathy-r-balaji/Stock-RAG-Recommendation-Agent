@@ -58,7 +58,7 @@ flowchart TD
 |---|---|---|
 | **Data** | Price history via Alpha Vantage (primary, cloud-safe) → yfinance fallback; news via Finnhub optional → yfinance | `data/data_layer.py` |
 | **Forecast** | LightGBM with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
-| **Vector store** | Chroma in-memory (semantic) + BM25 (keyword), fused via RRF | `retrieval/vector_store.py` |
+| **Vector store** | FAISS IndexFlatIP (OpenAI embeddings, cosine similarity) + BM25 keyword, fused via RRF | `retrieval/vector_store.py` |
 | **Agent tools** | 3 LangChain tools: forecast · news RAG · price history | `agent/tools.py` |
 | **Agent** | LangGraph ReAct loop with multi-turn memory; LangSmith tracing | `agent/agent.py` |
 | **Snapshot** | Claude Opus 4.5 generates 3-4 bullet price + forecast summary shown before chat | `app.py` |

@@ -81,7 +81,7 @@ st.set_page_config(
 )
 
 st.title("📈 Stock RAG Recommendation Agent")
-st.caption("Powered by LightGBM forecasting · RAG news retrieval · Claude Sonnet")
+st.caption("Powered by LightGBM forecasting · Hybrid FAISS+BM25 RAG · Claude Sonnet")
 
 # ── Ticker input ───────────────────────────────────────────────────────────────
 

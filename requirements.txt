@@ -9,7 +9,7 @@ lightgbm
 scikit-learn
 
 # Retrieval
-chromadb==0.4.24
+faiss-cpu
 rank-bm25
 openai
 
