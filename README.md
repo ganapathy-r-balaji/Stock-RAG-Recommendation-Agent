@@ -3,9 +3,11 @@
 A portfolio/demo project that combines price forecasting, hybrid RAG over news, and a
 multi-turn conversational interface to answer stock research questions.
 
-> ⚠️ **NOT FINANCIAL ADVICE** — for educational and demo purposes only.
+> **NOT FINANCIAL ADVICE** — for educational and demo purposes only.
 
-🚀 **Live demo:** [nvl2l4byfavtx8nnrxnsjj.streamlit.app](https://nvl2l4byfavtx8nnrxnsjj.streamlit.app)
+**Live demo:** [nvl2l4byfavtx8nnrxnsjj.streamlit.app](https://nvl2l4byfavtx8nnrxnsjj.streamlit.app)
+
+**Architecture diagram (interactive):** [View in draw.io](https://viewer.diagrams.net/?url=https://raw.githubusercontent.com/ganapathy-r-balaji/Stock-RAG-Recommendation-Agent/main/AI%20Workflow%20architecture%20diagram.drawio)
 
 ---
 
