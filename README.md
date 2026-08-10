@@ -1,6 +1,6 @@
 # Stock RAG Recommendation Agent
 
-A portfolio/demo project that combines price forecasting, hybrid RAG over news, and a
+A portfolio project that combines price forecasting, hybrid RAG over news, and a
 multi-turn conversational interface to answer stock research questions.
 
 > **NOT FINANCIAL ADVICE** — for educational and demo purposes only.
