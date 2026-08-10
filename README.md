@@ -11,7 +11,7 @@ multi-turn conversational interface to answer stock research questions.
 
 ## Architecture
 
-![Architecture Diagram](docs/architecture.png)
+![Architecture Diagram](docs/Architecture%20diagram.drawio.svg)
 
 ## Components
 
