@@ -7,7 +7,7 @@ multi-turn conversational interface to answer stock research questions.
 
 **Live demo:** [nvl2l4byfavtx8nnrxnsjj.streamlit.app](https://nvl2l4byfavtx8nnrxnsjj.streamlit.app)
 
-**Architecture diagram (interactive):** [View in draw.io](https://viewer.diagrams.net/?url=https://raw.githubusercontent.com/ganapathy-r-balaji/Stock-RAG-Recommendation-Agent/main/AI%20Workflow%20architecture%20diagram.drawio)
+[![Architecture Diagram](docs/architecture.png)](https://viewer.diagrams.net/?url=https://raw.githubusercontent.com/ganapathy-r-balaji/Stock-RAG-Recommendation-Agent/main/AI%20Workflow%20architecture%20diagram.drawio)
 
 ---
 
