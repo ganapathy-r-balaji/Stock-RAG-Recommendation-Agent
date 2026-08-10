@@ -28,7 +28,7 @@ flowchart TD
     end
 
     subgraph RAG
-        NW --> VEC[Chroma Vector Store\nin-memory]
+        NW --> VEC[FAISS Index\nOpenAI embeddings]
         NW --> BM25[BM25 Keyword Index\nin-memory]
         VEC --> SEM[Semantic Retrieval]
         BM25 --> KW[Keyword Retrieval]
@@ -82,7 +82,7 @@ flowchart TD
     end
 
     subgraph Retrieval
-        NW --> VEC[Vector Store\nChroma in-memory]
+        NW --> VEC[FAISS Index\nOpenAI embeddings]
         KG[Knowledge Graph\nNetworkX: ticker → sector → peers]
     end
 
@@ -123,7 +123,7 @@ flowchart TD
 |---|---|---|
 | **Data** | Price history via yfinance; news via Finnhub (falls back to yfinance) | `data/data_layer.py` |
 | **Forecast** | LightGBM regressor with lag/MA/RSI features, walk-forward backtested | `forecast/forecaster.py` |
-| **Vector store** | Chroma in-memory store; news embedded and retrieved by semantic similarity | `retrieval/vector_store.py` |
+| **Vector store** | FAISS IndexFlatIP (OpenAI embeddings, cosine similarity) + BM25 keyword, fused via RRF | `retrieval/vector_store.py` |
 | **Knowledge graph** | NetworkX graph of ticker → sector → peer companies | `retrieval/knowledge_graph.py` |
 | **Agent tools** | 4 LangChain tools the agent can call: forecast, news, graph, price history | `agent/tools.py` |
 | **Guardrails** | 3-layer hallucination mitigation: system prompt + Pydantic schema + code validator | `agent/guardrails.py` |

@@ -39,7 +39,7 @@ flowchart TD
     end
 
     subgraph RAG
-        NW --> VEC[Chroma Vector Store\nin-memory]
+        NW --> VEC[FAISS Index\nOpenAI embeddings]
         NW --> BM25[BM25 Keyword Index\nin-memory]
         VEC --> SEM[Semantic Retrieval]
         BM25 --> KW[Keyword Retrieval]
@@ -86,7 +86,7 @@ flowchart TD
 ├── forecast/
 │   └── forecaster.py            # LightGBM 3-day-ahead price forecaster
 ├── retrieval/
-│   └── vector_store.py          # Hybrid Chroma + BM25 + RRF retrieval
+│   └── vector_store.py          # Hybrid FAISS + BM25 + RRF retrieval
 ├── agent/
 │   ├── tools.py                 # LangChain tools (forecast, retrieve, price history)
 │   └── agent.py                 # LangGraph ReAct agent (Claude Sonnet 4.6)
